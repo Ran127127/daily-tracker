@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日常记录 · 开销 / 体重 / 习惯</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-light: #818cf8;
+    --bg: #f4f5fb;
+    --card: #ffffff;
+    --text: #1f2333;
+    --text-sub: #6b7280;
+    --border: #e8eaf3;
+    --radius: 18px;
+    --shadow: 0 4px 20px rgba(31, 35, 51, .06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(120deg, #4f46e5 0%, #7c3aed 55%, #9333ea 100%);
+    border-radius: var(--radius);
+    color: #fff;
+    padding: 28px 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, .28);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; right: -60px; top: -80px;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: rgba(255,255,255,.08);
+  }
+  .hero::before {
+    content: "";
+    position: absolute; right: 90px; bottom: -110px;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: rgba(255,255,255,.07);
+  }
+  .hero-left { position: relative; z-index: 1; }
+  .hero-label { font-size: 14px; opacity: .85; letter-spacing: 2px; }
+  .hero-title { font-size: 30px; font-weight: 800; margin: 6px 0 4px; }
+  .hero-date { font-size: 14px; opacity: .85; }
+  .hero-right { position: relative; z-index: 1; display: flex; gap: 14px; align-items: stretch; }
+  .hero-stat {
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 14px;
+    padding: 12px 18px;
+    text-align: center;
+    min-width: 96px;
+  }
+  .hero-stat .lbl { font-size: 12px; opacity: .85; }
+  .hero-stat .val { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .hero-stat .val small { font-size: 12px; font-weight: 500; opacity: .85; margin-left: 2px; }
+
+  /* ===== 统计 ===== */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-label { font-size: 13px; color: var(--text-sub); }
+  .stat-value { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat-value small { font-size: 13px; font-weight: 500; color: var(--text-sub); margin-left: 3px; }
+  .stat-value .up { color: #ef4444; font-size: 14px; font-weight: 600; }
+  .stat-value .down { color: #10b981; font-size: 14px; font-weight: 600; }
+  .stat-value .flat { color: var(--text-sub); font-size: 14px; font-weight: 600; }
+
+  /* ===== 主区域 ===== */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 17px; font-weight: 700; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .card-title .date-picker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--text-sub);
+    background: var(--bg); padding: 5px 10px; border-radius: 8px; font-weight: 500;
+  }
+  .card-title .date-picker input { border: none; background: transparent; font-size: 12.5px; color: var(--text); outline: none; font-family: inherit; }
+  .card-sub { font-size: 12.5px; color: var(--text-sub); margin-bottom: 16px; }
+
+  /* ===== 习惯打卡 ===== */
+  .habits { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .habit {
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    background: #fff;
+    user-select: none;
+  }
+  .habit:hover { border-color: var(--primary-light); }
+  .habit.checked {
+    background: linear-gradient(135deg, var(--hc), color-mix(in srgb, var(--hc) 70%, #fff));
+    border-color: transparent;
+    color: #fff;
+  }
+  .habit.off { opacity: .45; }
+  .habit-top { display: flex; align-items: center; gap: 10px; }
+  .habit-name { font-size: 14.5px; font-weight: 700; }
+  .habit-check {
+    margin-left: auto; width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: #fff;
+  }
+  .habit:not(.checked) .habit-check { border-color: var(--border); color: transparent; }
+  .habit-sched { font-size: 11.5px; opacity: .8; margin-top: 6px; }
+  .habit:not(.checked) .habit-sched { color: var(--text-sub); opacity: 1; }
+  .badge-off {
+    display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 20px;
+    background: #eef0f7; color: var(--text-sub); margin-left: 4px;
+  }
+  .habit.checked .badge-off { background: rgba(255,255,255,.25); color: #fff; }
+
+  /* ===== 体重 ===== */
+  .weight-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .weight-input-wrap { position: relative; flex: 1; }
+  .weight-input {
+    width: 100%; padding: 12px 44px 12px 16px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-size: 20px; font-weight: 700; font-family: inherit; outline: none;
+    background: var(--bg); transition: border .2s, background .2s;
+    font-variant-numeric: tabular-nums;
+  }
+  .weight-input:focus { border-color: var(--primary-light); background: #fff; }
+  .weight-unit { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 14px; font-weight: 600; }
+  .weight-diff {
+    font-size: 14px; font-weight: 700; padding: 8px 12px; border-radius: 10px;
+    background: var(--bg); white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .weight-diff.up { color: #ef4444; }
+  .weight-diff.down { color: #10b981; }
+  .weight-diff.flat { color: var(--text-sub); }
+  .weight-chart { width: 100%; height: 110px; }
+  .weight-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-sub); margin-top: 6px; }
+  .weight-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  /* ===== 开销 ===== */
+  .exp-summary { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .exp-summary .total { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary); }
+  .exp-summary .total small { font-size: 13px; font-weight: 500; color: var(--text-sub); margin-left: 3px; }
+  .exp-summary .month { font-size: 12.5px; color: var(--text-sub); }
+  .exp-summary .month b { color: var(--text); }
+
+  .exp-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
+  .exp-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 13px; background: var(--bg); border-radius: 12px;
+  }
+  .exp-cat {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700;
+  }
+  .exp-main { flex: 1; min-width: 0; }
+  .exp-name { font-size: 13.5px; font-weight: 600; }
+  .exp-note { font-size: 12px; color: var(--text-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exp-amount { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .exp-del { border: none; background: transparent; color: #c3c7d6; font-size: 17px; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .exp-del:hover { color: #ef4444; }
+
+  .exp-add { display: grid; grid-template-columns: 1fr 90px 1fr auto; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .exp-add select, .exp-add input {
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 13px; font-family: inherit; outline: none; background: var(--bg);
+  }
+  .exp-add select:focus, .exp-add input:focus { border-color: var(--primary-light); background: #fff; }
+  .exp-add input[type=number] { text-align: right; font-variant-numeric: tabular-nums; }
+  .exp-add button {
+    border: none; background: var(--primary); color: #fff; border-radius: 10px;
+    padding: 0 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .exp-add button:hover { filter: brightness(1.08); }
+
+  .empty { text-align: center; color: var(--text-sub); font-size: 13px; padding: 22px 0; }
+
+  /* ===== 其他事项 ===== */
+  .todo-add { display: flex; gap: 8px; margin-bottom: 12px; }
+  .todo-add input {
+    flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 11px;
+    font-size: 13.5px; font-family: inherit; outline: none; background: var(--bg);
+  }
+  .todo-add input:focus { border-color: var(--primary-light); background: #fff; }
+  .todo-add button {
+    border: none; background: var(--primary); color: #fff; border-radius: 11px;
+    padding: 0 18px; font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .todo-list { display: flex; flex-direction: column; gap: 7px; }
+  .todo-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; background: var(--bg); border-radius: 11px;
+  }
+  .todo-check {
+    width: 20px; height: 20px; border-radius: 6px; border: 2px solid #c3c7d6;
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .todo-check.done { background: var(--primary); border-color: var(--primary); color: #fff; font-size: 12px; }
+  .todo-text { flex: 1; font-size: 13.5px; }
+  .todo-item.done .todo-text { text-decoration: line-through; color: var(--text-sub); }
+  .todo-del { border: none; background: transparent; color: #c3c7d6; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .todo-del:hover { color: #ef4444; }
+
+  /* ===== 弹窗 / Toast ===== */
+  .toast {
+    position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%) translateY(20px);
+    background: #262a3d; color: #fff; font-size: 14px;
+    padding: 11px 22px; border-radius: 12px; opacity: 0;
+    pointer-events: none; transition: all .3s ease; z-index: 99;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .hero { flex-direction: column; align-items: flex-start; }
+    .hero-right { width: 100%; }
+    .hero-stat { flex: 1; }
+    .habits { grid-template-columns: 1fr 1fr; }
+    .exp-add { grid-template-columns: 1fr 80px; }
+    .exp-add .exp-note-in { grid-column: 1 / -1; }
+    .exp-add button { grid-column: 1 / -1; padding: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-label">DAILY TRACKER · 生活记录</div>
+      <div class="hero-title">日常记录</div>
+      <div class="hero-date" id="heroDate"></div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-stat"><div class="lbl">今日开销</div><div class="val" id="heroExp">0<small>元</small></div></div>
+      <div class="hero-stat"><div class="lbl">当前体重</div><div class="val" id="heroWeight">--<small>kg</small></div></div>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="stats">
+    <div class="stat-card"><span class="stat-label">今日开销</span><span class="stat-value" id="stTodayExp">0<small>元</small></span></div>
+    <div class="stat-card"><span class="stat-label">本月开销</span><span class="stat-value" id="stMonthExp">0<small>元</small></span></div>
+    <div class="stat-card"><span class="stat-label">体重（较昨日）</span><span class="stat-value" id="stWeight">--<small>kg</small></span></div>
+    <div class="stat-card"><span class="stat-label">本周打卡率</span><span class="stat-value" id="stHabit">0<small>%</small></span></div>
+  </div>
+
+  <div class="layout">
+    <!-- 左列 -->
+    <div class="col">
+      <!-- 习惯打卡 -->
+      <div class="card">
+        <div class="card-title">
+          <span>习惯打卡</span>
+          <label class="date-picker">日期<input type="date" id="pickDate" onchange="onPickDate(this.value)"></label>
+        </div>
+        <div class="card-sub" id="habitSub">今日待完成的习惯</div>
+        <div class="habits" id="habitList"></div>
+      </div>
+
+      <!-- 体重 -->
+      <div class="card">
+        <div class="card-title"><span>体重记录</span></div>
+        <div class="card-sub">输入今日体重，自动记录并展示近 14 天趋势</div>
+        <div class="weight-row">
+          <div class="weight-input-wrap">
+            <input type="number" class="weight-input" id="weightInput" step="0.1" min="20" max="200" placeholder="--" oninput="saveWeight(this.value)">
+            <span class="weight-unit">kg</span>
+          </div>
+          <div class="weight-diff flat" id="weightDiff">较昨日 --</div>
+        </div>
+        <svg class="weight-chart" id="weightChart" viewBox="0 0 400 110" preserveAspectRatio="none"></svg>
+        <div class="weight-legend">
+          <span><i style="background:#4f46e5"></i>近 14 天体重趋势</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右列 -->
+    <div class="col">
+      <!-- 开销 -->
+      <div class="card">
+        <div class="card-title"><span>今日开销</span></div>
+        <div class="exp-summary">
+          <div class="total"><span id="expTotal">0.00</span><small>元</small></div>
+          <div class="month">本月累计 <b id="expMonth">0.00</b> 元</div>
+        </div>
+        <div class="exp-list" id="expList"></div>
+        <div class="exp-add">
+          <select id="expCat">
+            <option value="food">餐饮</option>
+            <option value="transport">交通</option>
+            <option value="shop">购物</option>
+            <option value="home">居家</option>
+            <option value="other">其他</option>
+          </select>
+          <input type="number" id="expAmount" min="0" step="0.01" placeholder="金额">
+          <input type="text" class="exp-note-in" id="expNote" placeholder="备注（可选）" maxlength="30">
+          <button onclick="addExpense()">记一笔</button>
+        </div>
+      </div>
+
+      <!-- 其他事项 -->
+      <div class="card">
+        <div class="card-title"><span>其他事项</span></div>
+        <div class="card-sub">记录今天要做或已做的其他事情</div>
+        <div class="todo-add">
+          <input type="text" id="todoInput" placeholder="添加一条事项…" maxlength="60" onkeydown="if(event.key==='Enter')addTodo()">
+          <button onclick="addTodo()">添加</button>
+        </div>
+        <div class="todo-list" id="todoList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== 配置 ==================== */
+const HABITS = [
+  { key: 'taobao',   name: '淘宝打卡', days: [],    color: '#f59e0b' },
+  { key: 'running',  name: '跑步',     days: [],    color: '#10b981' },
+  { key: 'mask',     name: '面膜',     days: [2,6], color: '#ec4899' },
+  { key: 'facewash', name: '洗面奶',   days: [3],   color: '#3b82f6' },
+];
+const EXP_CATS = {
+  food:      { name: '餐饮', color: '#f59e0b' },
+  transport: { name: '交通', color: '#3b82f6' },
+  shop:      { name: '购物', color: '#ec4899' },
+  home:      { name: '居家', color: '#10b981' },
+  other:     { name: '其他', color: '#6b7280' },
+};
+const SCHED_LABEL = { '2,6': '周二 / 周六', '3': '周三' };
+
+/* ==================== 数据 ==================== */
+let records = JSON.parse(localStorage.getItem('dt_records') || '{}');
+let selectedDate = todayStr();
+
+function todayStr() { return fmtDate(new Date()); }
+function fmtDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function parseDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function weekdayCN(d) { return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; }
+function saveAll() { localStorage.setItem('dt_records', JSON.stringify(records)); }
+function getRec(date) { return records[date] || (records[date] = { habits: {}, expenses: [], todos: [] }); }
+function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* 判断某个习惯在某天是否"应打卡" */
+function isScheduled(habit, dateStr) {
+  if (!habit.days.length) return true;
+  return habit.days.includes(parseDate(dateStr).getDay());
+}
+
+/* ==================== 渲染 ==================== */
+function renderAll() {
+  renderHero();
+  renderStats();
+  renderHabits();
+  renderWeight();
+  renderExpenses();
+  renderTodos();
+}
+
+function renderHero() {
+  const pd = parseDate(selectedDate);
+  const isToday = selectedDate === todayStr();
+  document.getElementById('heroDate').textContent =
+    selectedDate.replace(/-/g, ' / ') + ' · ' + weekdayCN(pd) + (isToday ? '（今天）' : '');
+
+  const rec = records[selectedDate] || {};
+  const dayExp = (rec.expenses || []).reduce((s, e) => s + (+e.amount || 0), 0);
+  document.getElementById('heroExp').innerHTML = dayExp.toFixed(2) + '<small>元</small>';
+
+  const latest = latestWeight();
+  document.getElementById('heroWeight').innerHTML = (latest != null ? latest : '--') + '<small>kg</small>';
+}
+
+function renderStats() {
+  const rec = records[selectedDate] || {};
+  const dayExp = (rec.expenses || []).reduce((s, e) => s + (+e.amount || 0), 0);
+  document.getElementById('stTodayExp').innerHTML = dayExp.toFixed(2) + '<small>元</small>';
+
+  const today = new Date();
+  const monthPrefix = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0');
+  let monthExp = 0;
+  for (const [date, r] of Object.entries(records)) {
+    if (date.startsWith(monthPrefix)) {
+      monthExp += (r.expenses || []).reduce((s, e) => s + (+e.amount || 0), 0);
+    }
+  }
+  document.getElementById('stMonthExp').innerHTML = monthExp.toFixed(2) + '<small>元</small>';
+
+  // 体重（较昨日）
+  const w = rec.weight;
+  const stWeight = document.getElementById('stWeight');
+  if (w != null) {
+    const prev = prevWeight(selectedDate);
+    let diffHtml = '';
+    if (prev != null) {
+      const diff = Math.round((w - prev) * 10) / 10;
+      if (diff > 0) diffHtml = ' <span class="up">↑' + diff + '</span>';
+      else if (diff < 0) diffHtml = ' <span class="down">↓' + Math.abs(diff) + '</span>';
+      else diffHtml = ' <span class="flat">—</span>';
+    }
+    stWeight.innerHTML = w + '<small>kg</small>' + diffHtml;
+  } else {
+    stWeight.innerHTML = '--<small>kg</small>';
+  }
+
+  // 本周打卡率
+  document.getElementById('stHabit').innerHTML = weekHabitRate() + '<small>%</small>';
+}
+
+/* 最近一次体重（含今天） */
+function latestWeight() {
+  const dates = Object.keys(records).filter(d => records[d].weight != null).sort();
+  if (!dates.length) return null;
+  return records[dates[dates.length-1]].weight;
+}
+/* 所选日期之前最近的体重 */
+function prevWeight(dateStr) {
+  const dates = Object.keys(records).filter(d => d < dateStr && records[d].weight != null).sort();
+  if (!dates.length) return null;
+  return records[dates[dates.length-1]].weight;
+}
+
+/* 本周（周一~周日）的习惯完成率：已完成 / 应完成 */
+function weekHabitRate() {
+  const now = new Date();
+  const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay()+6)%7)); monday.setHours(0,0,0,0);
+  let scheduled = 0, done = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const ds = fmtDate(d);
+    HABITS.forEach(h => {
+      if (isScheduled(h, ds)) {
+        scheduled++;
+        if (records[ds] && records[ds].habits && records[ds].habits[h.key]) done++;
+      }
+    });
+  }
+  return scheduled ? Math.round(done / scheduled * 100) : 0;
+}
+
+/* ==================== 习惯 ==================== */
+function renderHabits() {
+  const rec = getRec(selectedDate);
+  const wd = parseDate(selectedDate).getDay();
+  const sub = document.getElementById('habitSub');
+  const todayHabits = HABITS.filter(h => isScheduled(h, selectedDate));
+  sub.textContent = todayHabits.length
+    ? '今日待完成：' + todayHabits.map(h => h.name).join('、')
+    : '今天没有固定安排的习惯';
+
+  const box = document.getElementById('habitList');
+  box.innerHTML = '';
+  HABITS.forEach(h => {
+    const sched = isScheduled(h, selectedDate);
+    const checked = !!(rec.habits && rec.habits[h.key]);
+    const wdNames = ['周日','周一','周二','周三','周四','周五','周六'];
+    const schedText = h.days.length ? h.days.map(d => wdNames[d]).join(' / ') : '每天';
+
+    const el = document.createElement('div');
+    el.className = 'habit' + (checked ? ' checked' : '') + (!sched ? ' off' : '');
+    el.style.setProperty('--hc', h.color);
+    el.innerHTML =
+      '<div class="habit-top">' +
+        '<span class="habit-name">' + h.name +
+          (!sched ? '<span class="badge-off">非今日</span>' : '') +
+        '</span>' +
+        '<span class="habit-check">✓</span>' +
+      '</div>' +
+      '<div class="habit-sched">' + schedText + '</div>';
+    el.onclick = () => toggleHabit(h.key);
+    box.appendChild(el);
+  });
+}
+
+function toggleHabit(key) {
+  const rec = getRec(selectedDate);
+  rec.habits = rec.habits || {};
+  rec.habits[key] = !rec.habits[key];
+  if (!rec.habits[key]) delete rec.habits[key];
+  saveAll();
+  renderHabits(); renderStats(); renderHero();
+}
+
+/* ==================== 体重 ==================== */
+function saveWeight(val) {
+  const rec = getRec(selectedDate);
+  if (val === '' || val == null) { delete rec.weight; }
+  else {
+    const v = parseFloat(val);
+    if (!isNaN(v)) rec.weight = v;
+  }
+  saveAll();
+  renderWeight(); renderStats(); renderHero();
+}
+
+function renderWeight() {
+  const rec = records[selectedDate] || {};
+  const input = document.getElementById('weightInput');
+  if (document.activeElement !== input) input.value = rec.weight != null ? rec.weight : '';
+
+  const diffEl = document.getElementById('weightDiff');
+  if (rec.weight != null) {
+    const prev = prevWeight(selectedDate);
+    if (prev != null) {
+      const diff = Math.round((rec.weight - prev) * 10) / 10;
+      diffEl.className = 'weight-diff ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat');
+      diffEl.textContent = '较昨日 ' + (diff > 0 ? '+' : '') + diff + ' kg';
+    } else {
+      diffEl.className = 'weight-diff flat';
+      diffEl.textContent = '暂无对比';
+    }
+  } else {
+    diffEl.className = 'weight-diff flat';
+    diffEl.textContent = '较昨日 --';
+  }
+
+  // 近14天趋势图
+  drawWeightChart();
+}
+
+function drawWeightChart() {
+  const svg = document.getElementById('weightChart');
+  const today = parseDate(todayStr());
+  const points = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = fmtDate(d);
+    const w = records[ds] && records[ds].weight;
+    points.push({ date: ds, weight: w });
+  }
+  const valid = points.filter(p => p.weight != null);
+  svg.innerHTML = '';
+  if (valid.length < 2) {
+    svg.innerHTML = '<text x="200" y="60" text-anchor="middle" fill="#9ca3af" font-size="12">记录至少 2 天体重后显示趋势</text>';
+    return;
+  }
+  const ws = valid.map(p => p.weight);
+  const min = Math.min(...ws), max = Math.max(...ws);
+  const range = max - min || 1;
+  const pad = 10;
+  const W = 400, H = 110;
+  const xStep = (W - pad*2) / (points.length - 1);
+  const yOf = w => H - pad - ((w - min) / range) * (H - pad*2);
+
+  // 轴线
+  let svgContent = '<line x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'" stroke="#e8eaf3" stroke-width="1"/>';
+
+  // 折线
+  let path = '';
+  let started = false;
+  points.forEach((p, i) => {
+    if (p.weight == null) return;
+    const x = pad + i * xStep;
+    const y = yOf(p.weight);
+    path += (started ? ' L ' : 'M ') + x + ' ' + y;
+    started = true;
+  });
+  svgContent += '<path d="'+path+'" fill="none" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // 数据点
+  points.forEach((p, i) => {
+    if (p.weight == null) return;
+    const x = pad + i * xStep;
+    const y = yOf(p.weight);
+    const isToday = p.date === todayStr();
+    svgContent += '<circle cx="'+x+'" cy="'+y+'" r="'+(isToday?4.5:3)+'" fill="#fff" stroke="#4f46e5" stroke-width="2"/>';
+    if (isToday) {
+      svgContent += '<text x="'+x+'" y="'+(y-10)+'" text-anchor="middle" fill="#4f46e5" font-size="11" font-weight="700">'+p.weight+'</text>';
+    }
+  });
+
+  // 最高/最低标签
+  const maxP = valid.reduce((a,b)=>a.weight>b.weight?a:b);
+  const minP = valid.reduce((a,b)=>a.weight<b.weight?a:b);
+  const maxIdx = points.findIndex(p=>p===maxP);
+  const minIdx = points.findIndex(p=>p===minP);
+  svgContent += '<text x="'+(pad+maxIdx*xStep)+'" y="14" text-anchor="middle" fill="#ef4444" font-size="10">↑'+maxP.weight+'</text>';
+  svgContent += '<text x="'+(pad+minIdx*xStep)+'" y="'+(H-1)+'" text-anchor="middle" fill="#10b981" font-size="10">↓'+minP.weight+'</text>';
+
+  svg.innerHTML = svgContent;
+}
+
+/* ==================== 开销 ==================== */
+function renderExpenses() {
+  const rec = getRec(selectedDate);
+  const list = rec.expenses || [];
+  const total = list.reduce((s, e) => s + (+e.amount || 0), 0);
+  document.getElementById('expTotal').textContent = total.toFixed(2);
+
+  const today = new Date();
+  const monthPrefix = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0');
+  let monthExp = 0;
+  for (const [date, r] of Object.entries(records)) {
+    if (date.startsWith(monthPrefix)) monthExp += (r.expenses || []).reduce((s, e) => s + (+e.amount || 0), 0);
+  }
+  document.getElementById('expMonth').textContent = monthExp.toFixed(2);
+
+  const box = document.getElementById('expList');
+  box.innerHTML = '';
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">今天还没有记录开销</div>';
+    return;
+  }
+  list.forEach(e => {
+    const cat = EXP_CATS[e.cat] || EXP_CATS.other;
+    const item = document.createElement('div');
+    item.className = 'exp-item';
+    item.innerHTML =
+      '<div class="exp-cat" style="background:' + cat.color + '">' + cat.name[0] + '</div>' +
+      '<div class="exp-main">' +
+        '<div class="exp-name">' + esc(cat.name) + '</div>' +
+        '<div class="exp-note">' + esc(e.note || '') + '</div>' +
+      '</div>' +
+      '<div class="exp-amount">¥' + (+e.amount).toFixed(2) + '</div>' +
+      '<button class="exp-del" title="删除" onclick="delExpense(\'' + e.id + '\')">×</button>';
+    box.appendChild(item);
+  });
+}
+
+function addExpense() {
+  const cat = document.getElementById('expCat').value;
+  const amount = parseFloat(document.getElementById('expAmount').value);
+  const note = document.getElementById('expNote').value.trim();
+  if (!amount || amount <= 0 || isNaN(amount)) { toast('请输入有效金额'); return; }
+  const rec = getRec(selectedDate);
+  rec.expenses = rec.expenses || [];
+  rec.expenses.push({ id: 'e' + Date.now() + Math.random().toString(36).slice(2,6), cat, amount, note });
+  saveAll();
+  document.getElementById('expAmount').value = '';
+  document.getElementById('expNote').value = '';
+  renderExpenses(); renderStats(); renderHero();
+  toast('已记录 ¥' + amount.toFixed(2));
+}
+
+function delExpense(id) {
+  const rec = getRec(selectedDate);
+  rec.expenses = (rec.expenses || []).filter(e => e.id !== id);
+  saveAll();
+  renderExpenses(); renderStats(); renderHero();
+}
+
+/* ==================== 其他事项 ==================== */
+function renderTodos() {
+  const rec = getRec(selectedDate);
+  const list = rec.todos || [];
+  const box = document.getElementById('todoList');
+  box.innerHTML = '';
+  if (!list.length) {
+    box.innerHTML = '<div class="empty">暂无事项，添加一条开始记录吧</div>';
+    return;
+  }
+  list.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'todo-item' + (t.done ? ' done' : '');
+    item.innerHTML =
+      '<div class="todo-check' + (t.done ? ' done' : '') + '" onclick="toggleTodo(\'' + t.id + '\')">' + (t.done ? '✓' : '') + '</div>' +
+      '<div class="todo-text">' + esc(t.text) + '</div>' +
+      '<button class="todo-del" title="删除" onclick="delTodo(\'' + t.id + '\')">×</button>';
+    box.appendChild(item);
+  });
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const rec = getRec(selectedDate);
+  rec.todos = rec.todos || [];
+  rec.todos.push({ id: 't' + Date.now(), text, done: false });
+  saveAll();
+  input.value = '';
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  const rec = getRec(selectedDate);
+  const t = (rec.todos || []).find(x => x.id === id);
+  if (t) { t.done = !t.done; saveAll(); renderTodos(); }
+}
+
+function delTodo(id) {
+  const rec = getRec(selectedDate);
+  rec.todos = (rec.todos || []).filter(t => t.id !== id);
+  saveAll();
+  renderTodos();
+}
+
+/* ==================== 日期切换 ==================== */
+function onPickDate(v) {
+  if (!v) return;
+  selectedDate = v;
+  renderAll();
+}
+
+/* ==================== 初始化 ==================== */
+document.getElementById('pickDate').value = selectedDate;
+renderAll();
+</script>
+</body>
+</html>
